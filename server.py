@@ -23,15 +23,9 @@ CORS(app)
 def send_mail():
     data = request.json
 
-    # Honeypot
-    honeypot = data.get("info_code", "")
-    if honeypot.strip():
-        return jsonify({"status": "error", "message": "Bot erkannt"}), 400
-
     cart = data.get("cart", {})
     message = data.get("message", "")
     email = data.get("email", "")
-    # Simple email validation
     if not email or "@" not in email or "." not in email.split("@")[-1]:
         return jsonify({"status": "error", "message": "Ungültige oder fehlende E-Mail-Adresse"}), 400
 
@@ -61,4 +55,6 @@ Bestellung:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
