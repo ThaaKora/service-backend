@@ -1,15 +1,14 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 load_dotenv()
 
-BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-EMAIL_TO = os.getenv("EMAIL_TO")  # Deine Zieladresse z. B. bestellungen@xyz.de
-SENDER_NAME = os.getenv("SENDER_NAME", "Partyservice Alexa")
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "noreply@partyservice.com")
+
+EMAIL_TO = os.getenv("EMAIL_TO")  
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")  
 
 app = Flask(__name__)
 CORS(app)
@@ -17,17 +16,17 @@ CORS(app)
 @app.route("/send", methods=["POST"])
 def send_mail():
     data = request.json
-
     cart = data.get("cart", {})
     message = data.get("message", "")
     email = data.get("email", "")
 
-    # E-Mail check
+    
     if not email or "@" not in email:
         return jsonify({"status": "error", "message": "Ungültige E-Mail"}), 400
 
-    bestellung = "\n".join([f"{item}: {qty}" for item, qty in cart.items()])
-    inhalt = f"""
+    
+    bestellung = "\n".join([f"{item}: {menge}" for item, menge in cart.items()])
+    text = f"""
 Neue Bestellung von: {email}
 
 Nachricht:
@@ -37,11 +36,17 @@ Warenkorb:
 {bestellung}
 """
 
+    
     payload = {
-        "sender": {"name": SENDER_NAME, "email": SENDER_EMAIL},
-        "to": [{"email": EMAIL_TO}],
+        "sender": {
+            "name": "Partyservice Alexa",
+            "email": "noreply@brevo.email"
+        },
+        "to": [
+            {"email": EMAIL_TO}
+        ],
         "subject": "Neue Bestellung über das Formular",
-        "textContent": inhalt
+        "textContent": text
     }
 
     headers = {
