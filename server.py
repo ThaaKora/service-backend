@@ -1,19 +1,15 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import smtplib
-from email.message import EmailMessage
+import requests
 from dotenv import load_dotenv
 import os
 
-# .env laden
 load_dotenv()
 
-# Umgebungsvariablen
-EMAIL_USER = os.getenv("EMAIL_USER")
-EMAIL_PASS = os.getenv("EMAIL_PASS")
-EMAIL_SMTP = os.getenv("EMAIL_SMTP", "smtp-relay.brevo.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_TO   = os.getenv("EMAIL_TO", EMAIL_USER)
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+EMAIL_TO = os.getenv("EMAIL_TO")  # Deine Zieladresse z. B. bestellungen@xyz.de
+SENDER_NAME = os.getenv("SENDER_NAME", "Partyservice Alexa")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "noreply@partyservice.com")
 
 app = Flask(__name__)
 CORS(app)
@@ -26,37 +22,42 @@ def send_mail():
     message = data.get("message", "")
     email = data.get("email", "")
 
-    if not email or "@" not in email or "." not in email.split("@")[-1]:
-        return jsonify({"status": "error", "message": "Ungültige oder fehlende E-Mail-Adresse"}), 400
+    # E-Mail check
+    if not email or "@" not in email:
+        return jsonify({"status": "error", "message": "Ungültige E-Mail"}), 400
 
-    bestellung = "\n".join([f"{item}: {menge}" for item, menge in cart.items()])
-    text = f"""Neue Anfrage von {email}
+    bestellung = "\n".join([f"{item}: {qty}" for item, qty in cart.items()])
+    inhalt = f"""
+Neue Bestellung von: {email}
 
 Nachricht:
 {message}
 
-Bestellung:
+Warenkorb:
 {bestellung}
 """
 
-    msg = EmailMessage()
-    msg.set_content(text)
-    msg["Subject"] = "Neue Anfrage über das Bestellformular"
-    msg["From"] = EMAIL_USER
-    msg["To"] = EMAIL_TO
+    payload = {
+        "sender": {"name": SENDER_NAME, "email": SENDER_EMAIL},
+        "to": [{"email": EMAIL_TO}],
+        "subject": "Neue Bestellung über das Formular",
+        "textContent": inhalt
+    }
+
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
 
     try:
-        with smtplib.SMTP(EMAIL_SMTP, EMAIL_PORT) as smtp:
-            smtp.starttls()
-            smtp.login(EMAIL_USER, EMAIL_PASS)
-            smtp.send_message(msg)
-
+        response = requests.post("https://api.brevo.com/v3/smtp/email", json=payload, headers=headers)
+        response.raise_for_status()
         return jsonify({"status": "ok"})
     except Exception as e:
-        print("Fehler beim Versand:", e)
+        print("Fehler beim Senden:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Für lokalen Start
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)

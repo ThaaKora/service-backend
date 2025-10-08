@@ -5,13 +5,11 @@ services:
     buildCommand: ""
     startCommand: gunicorn server:app
     envVars:
-      - key: EMAIL_USER
-        value: deine@email.de
-      - key: EMAIL_PASS
+      - key: BREVO_API_KEY
         sync: false
-      - key: EMAIL_SMTP
-        value: smtp-relay.brevo.com
-      - key: EMAIL_PORT
-        value: "587"
       - key: EMAIL_TO
         value: deine@email.de
+      - key: SENDER_NAME
+        value: Partyservice Alexa
+      - key: SENDER_EMAIL
+        value: noreply@partyservice.com
