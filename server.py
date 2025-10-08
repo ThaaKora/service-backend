@@ -5,8 +5,6 @@ from email.message import EmailMessage
 from dotenv import load_dotenv
 import os
 
-
-
 load_dotenv()
 
 EMAIL_USER = os.getenv("EMAIL_USER")
@@ -15,9 +13,8 @@ EMAIL_SMTP = os.getenv("EMAIL_SMTP")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 465))
 EMAIL_TO   = os.getenv("EMAIL_TO", EMAIL_USER)
 
-
 app = Flask(__name__)
-CORS(app)  
+CORS(app)
 
 @app.route("/send", methods=["POST"])
 def send_mail():
@@ -26,6 +23,7 @@ def send_mail():
     cart = data.get("cart", {})
     message = data.get("message", "")
     email = data.get("email", "")
+    # E-Mail-Validierung
     if not email or "@" not in email or "." not in email.split("@")[-1]:
         return jsonify({"status": "error", "message": "Ungültige oder fehlende E-Mail-Adresse"}), 400
 
@@ -54,7 +52,7 @@ Bestellung:
         print("Fehler beim Versand:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Dieser Block wird nur verwendet, wenn du direkt mit python startest (z. B. lokal)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-

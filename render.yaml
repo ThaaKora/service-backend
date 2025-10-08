@@ -1,10 +1,13 @@
 services:
   - type: web
-    name: partyservice-backend
+    name: gastro-backend
     env: python
-    buildCommand: ""
-    startCommand: "python server.py"
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT
     envVars:
+      - key: PORT
+        value: "10000"
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS
