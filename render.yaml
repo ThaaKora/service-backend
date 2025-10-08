@@ -1,20 +1,17 @@
 services:
   - type: web
-    name: gastro-backend
+    name: partyservice-backend
     env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT
+    buildCommand: ""
+    startCommand: gunicorn server:app
     envVars:
-      - key: PORT
-        value: "10000"
       - key: EMAIL_USER
-        sync: false
+        value: deine@email.de
       - key: EMAIL_PASS
         sync: false
       - key: EMAIL_SMTP
-        sync: false
+        value: smtp-relay.brevo.com
       - key: EMAIL_PORT
-        sync: false
+        value: "587"
       - key: EMAIL_TO
-        sync: false
+        value: deine@email.de

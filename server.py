@@ -48,9 +48,10 @@ Bestellung:
 
     try:
         with smtplib.SMTP(EMAIL_SMTP, EMAIL_PORT) as smtp:
-            smtp.starttls()  # Wichtig: TLS-Verbindung aktivieren!
-            smtp.login(EMAIL_USER, EMAIL_PASS)
-            smtp.send_message(msg)
+    smtp.starttls()
+    smtp.login(EMAIL_USER, EMAIL_PASS)
+    smtp.send_message(msg)
+
         return jsonify({"status": "ok"})
     except Exception as e:
         print("Fehler beim Versand:", e)
