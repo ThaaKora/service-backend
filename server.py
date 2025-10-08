@@ -5,14 +5,12 @@ from email.message import EmailMessage
 from dotenv import load_dotenv
 import os
 
-# .env laden
 load_dotenv()
 
-# Umgebungsvariablen
 EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASS = os.getenv("EMAIL_PASS")
-EMAIL_SMTP = os.getenv("EMAIL_SMTP", "smtp-relay.brevo.com")  # Standard für Brevo
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))  # TLS Port
+EMAIL_SMTP = os.getenv("EMAIL_SMTP", "smtp-relay.brevo.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
 EMAIL_TO   = os.getenv("EMAIL_TO", EMAIL_USER)
 
 app = Flask(__name__)
@@ -26,7 +24,6 @@ def send_mail():
     message = data.get("message", "")
     email = data.get("email", "")
 
-    # Einfache E-Mail-Validierung
     if not email or "@" not in email or "." not in email.split("@")[-1]:
         return jsonify({"status": "error", "message": "Ungültige oder fehlende E-Mail-Adresse"}), 400
 
@@ -48,14 +45,15 @@ Bestellung:
 
     try:
         with smtplib.SMTP(EMAIL_SMTP, EMAIL_PORT) as smtp:
-    smtp.starttls()
-    smtp.login(EMAIL_USER, EMAIL_PASS)
-    smtp.send_message(msg)
+            smtp.starttls()
+            smtp.login(EMAIL_USER, EMAIL_PASS)
+            smtp.send_message(msg)
 
         return jsonify({"status": "ok"})
     except Exception as e:
         print("Fehler beim Versand:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
