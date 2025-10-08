@@ -5,8 +5,10 @@ from email.message import EmailMessage
 from dotenv import load_dotenv
 import os
 
+# .env laden
 load_dotenv()
 
+# Umgebungsvariablen
 EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASS = os.getenv("EMAIL_PASS")
 EMAIL_SMTP = os.getenv("EMAIL_SMTP", "smtp-relay.brevo.com")
@@ -54,7 +56,7 @@ Bestellung:
         print("Fehler beim Versand:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
-
+# Für lokalen Start
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
