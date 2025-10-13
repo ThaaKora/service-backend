@@ -1,14 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
+import smtplib
 import os
+from email.mime.text import MIMEText
 from dotenv import load_dotenv
 
+# .env
 load_dotenv()
 
-
-EMAIL_TO = os.getenv("EMAIL_TO")  
-BREVO_API_KEY = os.getenv("BREVO_API_KEY")  
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+SENDER_PASS = os.getenv("SENDER_PASS") 
+EMAIL_TO = os.getenv("EMAIL_TO")
 
 app = Flask(__name__)
 CORS(app)
@@ -20,11 +22,9 @@ def send_mail():
     message = data.get("message", "")
     email = data.get("email", "")
 
-    
     if not email or "@" not in email:
         return jsonify({"status": "error", "message": "Ungültige E-Mail"}), 400
 
-    
     bestellung = "\n".join([f"{item}: {menge}" for item, menge in cart.items()])
     text = f"""
 Neue Bestellung von: {email}
@@ -36,32 +36,22 @@ Warenkorb:
 {bestellung}
 """
 
-    
-    payload = {
-        "sender": {
-            "name": "Partyservice Alexa",
-            "email": "noreply@brevo.email"
-        },
-        "to": [
-            {"email": EMAIL_TO}
-        ],
-        "subject": "Neue Bestellung über das Formular",
-        "textContent": text
-    }
-
-    headers = {
-        "accept": "application/json",
-        "api-key": BREVO_API_KEY,
-        "content-type": "application/json"
-    }
-
     try:
-        response = requests.post("https://api.brevo.com/v3/smtp/email", json=payload, headers=headers)
-        response.raise_for_status()
+        msg = MIMEText(text)
+        msg["Subject"] = "Neue Bestellung über das Formular"
+        msg["From"] = f"Partyservice Alexa <{SENDER_EMAIL}>"
+        msg["To"] = EMAIL_TO
+
+        # Gmail SMTP-Verbindung (SSL)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(SENDER_EMAIL, SENDER_PASS)
+            server.send_message(msg)
+
         return jsonify({"status": "ok"})
     except Exception as e:
         print("Fehler beim Senden:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
